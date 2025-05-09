@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Activa tu cuenta</title>
+</head>
+<body>
+    <h2>Hola {{ user.username }},</h2>
+    <p>Gracias por registrarte en nuestro sistema.</p>
+    <p>Para activar tu cuenta, haz clic en el siguiente enlace:</p>
+    <p>
+        <a href="http://{{ domain }}{% url 'activar_cuenta' uidb64=uid token=token %}" style="padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px;">
+            Activar cuenta
+        </a>
+    </p>
+    <p>Si no solicitaste esta cuenta, puedes ignorar este mensaje.</p>
+</body>
+</html>
