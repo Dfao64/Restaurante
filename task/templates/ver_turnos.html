@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container">
+    <h2>Turnos de {{ empleado.nombre_completo }}</h2>
+    <a href="{% url 'asignar_turno' empleado.id %}" class="btn btn-primary mb-3">Asignar nuevo turno</a>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Hora Inicio</th>
+                <th>Hora Fin</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for turno in turnos %}
+            <tr>
+                <td>{{ turno.fecha }}</td>
+                <td>{{ turno.hora_inicio }}</td>
+                <td>{{ turno.hora_fin }}</td>
+                <td>
+                    <a href="{% url 'editar_turno' turno.id %}" class="btn btn-warning btn-sm">Editar</a>
+                    <form action="{% url 'eliminar_turno' turno.id %}" method="post" style="display:inline;">
+                        {% csrf_token %}
+                        <a href="{% url 'eliminar_turno' turno.id %}" class="btn btn-danger btn-sm">Eliminar</a>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

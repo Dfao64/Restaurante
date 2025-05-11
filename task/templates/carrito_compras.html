@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}Carrito de Compras{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Carrito de Compras</h2>
+
+    {% if items %}
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Cantidad</th>
+                    <th>Precio Unitario</th>
+                    <th>Subtotal</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>{{ item.producto.nombre }}</td>
+                    <td>
+                        <form method="POST" action="{% url 'carrito_compras' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="item_id" value="{{ item.id }}">
+                            <button type="submit" name="action" value="disminuir" class="btn btn-danger btn-sm" {% if item.cantidad <= 1 %}disabled{% endif %}>-</button>
+                            {{ item.cantidad }}
+                            <button type="submit" name="action" value="agregar" class="btn btn-success btn-sm">+</button>
+                        </form>
+                    </td>
+                    <td>${{ item.producto.precio }}</td>
+                    <td>${{ item.producto.precio|floatformat:2|add:""|add:item.cantidad|floatformat:2 }}</td>
+                    <td>
+                        <form method="POST" action="{% url 'carrito_compras' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="item_id" value="{{ item.id }}">
+                            <button type="submit" name="action" value="eliminar" class="btn btn-danger btn-sm">Eliminar</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="text-end">
+            <h4>Total a pagar: ${{ total }}</h4>
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="{% url 'pago_recoger' %}" class="btn btn-success me-3">Para recoger en tienda</a>
+            <a href="{% url 'pago_domicilio' %}" class="btn btn-primary">Domicilio</a>
+        </div>
+    {% else %}
+        <p>No hay productos en el carrito.</p>
+    {% endif %}
+</div>
+{% endblock %}

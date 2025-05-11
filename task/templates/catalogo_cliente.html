@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Nuestros productos</h2>
+    <div class="row">
+        {% for producto in productos %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                {% if producto.imagen %}
+                <img src="{{ producto.imagen.url }}" class="card-img-top" alt="{{ producto.nombre }}">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ producto.nombre }}</h5>
+                    <p class="card-text">{{ producto.descripcion }}</p>
+                    <p class="card-text fw-bold">${{ producto.precio }}</p>
+                    <a href="#" class="btn btn-primary" onclick="agregarProducto({{ producto.id }})">Agregar al pedido</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function agregarProducto(productoId) {
+        fetch(`/agregar_carrito/${productoId}/`)  // Asegúrate de que esta URL coincida con tu ruta
+            .then(response => {
+                if (response.ok) {
+                    Swal.fire({
+                        title: '¡Producto agregado con éxito!',
+                        icon: 'success',
+                        showCancelButton: true,
+                        confirmButtonText: 'Ir al carrito',
+                        cancelButtonText: 'Añadir algo más',
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.href = "{% url 'carrito_compras' %}";
+                        }
+                    });
+                } else {
+                    Swal.fire('Error', 'No se pudo agregar el producto.', 'error');
+                }
+            });
+    }
+</script>
+
+{% endblock %}

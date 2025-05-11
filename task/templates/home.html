@@ -1,16 +1,9 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Bienvenido</title>
-</head>
-<body>
+{% extends 'base.html' %}
+
+{% block content %}
+
     <h1>Bienvenido al sistema</h1>
-    <a href="{% url 'register' %}">
-        <button>Registro de Usuario</button>
-    </a>
-    <a href="{% url 'login' %}">
-        <button>Iniciar Sesión</button>
-    </a>
-</body>
-</html>
+    <p>{% lorem 1 b random %}</p>
+
+{% endblock %}
+

@@ -34,3 +34,71 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
+    
+TIPO_PRODUCTO = [
+    ('comida', 'Comida'),
+    ('bebida', 'Bebida'),
+]
+
+class Producto(models.Model):
+    
+    nombre = models.CharField(max_length=255)
+    descripcion = models.TextField()
+    precio = models.DecimalField(max_digits=10, decimal_places=2)
+    tipo = models.CharField(max_length=10, choices=TIPO_PRODUCTO)
+    imagen = models.ImageField(upload_to='productos/', null =True, blank=True)
+
+    def __str__(self):
+        return self.nombre
+    
+class Carrito(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    creado_en = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.email} - {self.producto.nombre} ({self.cantidad})"
+
+class ItemCarrito(models.Model):
+    carrito = models.ForeignKey(Carrito, related_name='items', on_delete=models.CASCADE)
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
+    cantidad = models.PositiveIntegerField(default=1)
+
+    def __str__(self):
+        return f"{self.carrito.user.email} - {self.producto.nombre} ({self.cantidad})"
+    
+class Empleado(models.Model):
+    TIPO_CHOICES = [
+        ('Cocinero', 'Cocinero'),
+        ('Domiciliario', 'Domiciliario'),
+        ('Cajero', 'Cajero'),
+    ]
+    nombre_completo = models.CharField(max_length=100)
+    fecha_nacimiento = models.DateField()
+    cedula = models.CharField(max_length=20, unique=True)
+    telefono = models.CharField(max_length=20, unique=True)
+    direccion = models.CharField(max_length=255)
+    tipo_empleado = models.CharField(max_length=20, choices=TIPO_CHOICES)
+
+    def __str__(self):
+        return f"{self.nombre_completo} - {self.tipo_empleado}"
+    
+class Turno(models.Model):
+    empleado = models.ForeignKey(Empleado, on_delete=models.CASCADE)
+    fecha = models.DateField()
+    hora_inicio = models.TimeField()
+    hora_fin = models.TimeField()
+
+    def __str__(self):
+        return f"{self.empleado.nombre_completo} - {self.fecha} ({self.hora_inicio} - {self.hora_fin})"
+    
+class Pedido(models.Model):
+    producto_nombre = models.CharField(max_length=100)
+    cantidad = models.PositiveIntegerField()
+    precio_total = models.DecimalField(max_digits=10, decimal_places=2)
+    metodo = models.CharField(max_length=50)
+    direccion = models.CharField(max_length=255, blank=True, null=True)
+    alergias = models.TextField(null=True, blank=True)  
+    fecha = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.producto_nombre} x {self.cantidad}"

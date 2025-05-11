@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container">
+    <h2>Editar turno de {{ empleado.nombre_completo }}</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+        <a href="{% url 'ver_turnos' empleado.id %}" class="btn btn-secondary">Cancelar</a>  <!-- Cambié 'editar_turno' por 'ver_turnos' -->
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container">
+    <h2>Pago - Recoger en Tienda</h2>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-success">Pagar</button>
+        <a href="{% url 'carrito_compras' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+
+    {% if pago_exitoso %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    Swal.fire({
+        icon: 'success',
+        title: '¡Pedido realizado con éxito!',
+        text: 'Su pedido estará listo para recoger aproximadamente en unos 25 minutos.',
+        confirmButtonText: 'Aceptar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = "{% url 'catalogo_cliente' %}";
+        }
+    });
+</script>
+{% endif %}
+
+</div>
+{% endblock %}

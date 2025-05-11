@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container">
+    <h2>Pago - Entrega a domicilio</h2>
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-success">Pagar y enviar</button>
+        <a href="{% url 'carrito_compras' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+
+{% if pago_exitoso %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    Swal.fire({
+        icon: 'success',
+        title: '¡Pedido realizado con éxito!',
+        text: 'Su pedido llegará a su domicilio en aproximadamente 45 minutos.',
+        confirmButtonText: 'Aceptar'
+    }).then(() => {
+        window.location.href = "{% url 'catalogo_cliente' %}";
+    });
+</script>
+{% endif %}
+
+{% endblock %}

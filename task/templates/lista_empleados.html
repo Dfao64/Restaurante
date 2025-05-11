@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Gestión de Empleados</h2>
+<a href="{% url 'crear_empleado' %}" class="btn btn-primary mb-3">Agregar Empleado</a>
+<a href="{% url 'crear_empleado' %}" class="btn btn-primary mb-3">Ver turnos asignados</a>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Cédula</th>
+            <th>Tipo</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for emp in empleados %}
+        <tr>
+            <td>{{ emp.nombre_completo }}</td>
+            <td>{{ emp.cedula }}</td>
+            <td>{{ emp.tipo_empleado }}</td>
+            <td>
+                <a href="{% url 'editar_empleado' emp.pk %}" class="btn btn-sm btn-warning">Editar</a>
+                <a href="{% url 'eliminar_empleado' emp.pk %}" class="btn btn-sm btn-danger">Eliminar</a>
+            </td>
+            <td>
+                <a href="{% url 'asignar_turno' emp.pk %}" class="btn btn-sm btn-info">Asignar Turno</a>  <!-- Botón de asignar turno -->
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
