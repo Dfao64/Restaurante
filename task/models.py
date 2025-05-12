@@ -92,6 +92,7 @@ class Turno(models.Model):
         return f"{self.empleado.nombre_completo} - {self.fecha} ({self.hora_inicio} - {self.hora_fin})"
     
 class Pedido(models.Model):
+    cliente = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     producto_nombre = models.CharField(max_length=100)
     cantidad = models.PositiveIntegerField()
     precio_total = models.DecimalField(max_digits=10, decimal_places=2)
@@ -99,6 +100,16 @@ class Pedido(models.Model):
     direccion = models.CharField(max_length=255, blank=True, null=True)
     alergias = models.TextField(null=True, blank=True)  
     fecha = models.DateTimeField(auto_now_add=True)
+    
+    ESTADOS = [
+        ('En cocina', 'En cocina'),
+        ('En cocina1', 'En cocina1'),
+        ('En reparto', 'En reparto'),
+        ('Entregado', 'Entregado'),
+        ('Enviado', 'Enviado'),
+        ('En reparto', 'En reparto'),
+    ]
+    estado = models.CharField(max_length=20, choices=ESTADOS)
     
     def __str__(self):
         return f"{self.producto_nombre} x {self.cantidad}"

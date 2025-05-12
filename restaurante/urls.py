@@ -52,6 +52,14 @@ urlpatterns = [
     path('ver_turnos/<int:empleado_id>/', views.ver_turnos, name='ver_turnos'),
     path('eliminar_turno/<int:turno_id>/', views.eliminar_turno, name='eliminar_turno'),
     path('editar_turno/<int:turno_id>/', views.editar_turno, name='editar_turno'),
+    path('pedidos_en_cocina/', views.pedidos_en_cocina, name='pedidos_en_cocina'),
+    path('marcar_listo_para_recoger/<int:cliente_id>/', views.marcar_listo_para_recoger, name='marcar_listo_para_recoger'),
+    path('marcar_entregado/<int:cliente_id>/', views.marcar_entregado, name='marcar_entregado'),
+    path('mis_pedidos/', views.mis_pedidos, name='mis_pedidos'),
+    path('pedidos_domicilio/', views.pedidos_domicilio, name='pedidos_domicilio'),
+    path('marcar_enviado/<int:cliente_id>/', views.marcar_enviado, name='marcar_enviado'),
+    path('dashboard_admin/', views.dashboard_admin, name='dashboard_admin'),
+    path('descargar_reporte_pdf/', views.descargar_reporte_pdf, name='descargar_reporte_pdf'),
 ]
 
 if settings.DEBUG:

@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center mb-4">📋 Mis Pedidos</h2>
+
+    <div class="mb-5">
+        <h4 class="text-primary">🟡 Pedidos Activos</h4>
+        {% if pedidos_activos %}
+            <ul class="list-group">
+                {% for pedido in pedidos_activos %}
+                    <li class="list-group-item">
+                        <strong>{{ pedido.producto_nombre }}</strong> - Cantidad: {{ pedido.cantidad }} - ${{ pedido.precio_total }}
+                        <br>
+                        <small class="text-muted">Estado: {{ pedido.estado }} | Fecha: {{ pedido.fecha|date:"d M Y H:i" }}</small>
+                        {% if pedido.alergias %}
+                            <br><span class="badge bg-danger">⚠️ Alergias: {{ pedido.alergias }}</span>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="text-muted">No tienes pedidos activos.</p>
+        {% endif %}
+    </div>
+
+    <div>
+        <h4 class="text-success">✅ Historial de Pedidos</h4>
+        {% if historial_pedidos %}
+            <ul class="list-group">
+                {% for pedido in historial_pedidos %}
+                    <li class="list-group-item">
+                        <strong>{{ pedido.producto_nombre }}</strong> - Cantidad: {{ pedido.cantidad }} - ${{ pedido.precio_total }}
+                        <br>
+                        <small class="text-muted">Fecha: {{ pedido.fecha|date:"d M Y H:i" }}</small>
+                        {% if pedido.alergias %}
+                            <br><span class="badge bg-danger">⚠️ Alergias: {{ pedido.alergias }}</span>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="text-muted">No hay pedidos en tu historial aún.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4 text-center">📊 Dashboard de Ventas</h2>
+
+    <!-- Tarjetas de métricas -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card border-success mb-3">
+                <div class="card-header bg-success text-white">Ventas del Día</div>
+                <div class="card-body">
+                    <h4>$ {{ ventas_diarias }}</h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card border-info mb-3">
+                <div class="card-header bg-info text-white">Ventas de la Última Semana</div>
+                <div class="card-body">
+                    <h4>$ {{ ventas_semanales }}</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de platos más vendidos -->
+    <h4 class="mt-4">🍽️ Platos Más Vendidos</h4>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Cantidad Vendida</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for plato in platos_populares %}
+            <tr>
+                <td>{{ plato.producto_nombre }}</td>
+                <td>{{ plato.total_vendidos }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Gráfico de platos más vendidos -->
+    <h4 class="mt-4">📈 Gráfico de Platos Más Vendidos</h4>
+    <canvas id="platosChart" width="400" height="200"></canvas>
+</div>
+
+<!-- Script de Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Datos convertidos a JSON para Chart.js -->
+{{ platos_populares|json_script:"platos-data" }}
+
+<script>
+    const platos = JSON.parse(document.getElementById('platos-data').textContent);
+    const labels = platos.map(p => p.producto_nombre);
+    const data = platos.map(p => p.total_vendidos);
+
+    new Chart(document.getElementById('platosChart'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Cantidad Vendida',
+                data: data,
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            }
+        }
+    });
+</script>
+<a href="{% url 'descargar_reporte_pdf' %}" class="btn btn-danger mt-3">Descargar Reporte en PDF</a>
+
+{% endblock %}

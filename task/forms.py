@@ -185,6 +185,7 @@ class FormularioPagoDomicilio(forms.Form):
         widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Opcional'})
     )
     
+    
     def clean_numero_tarjeta(self):
         numero_tarjeta = self.cleaned_data.get('numero_tarjeta')
         if not numero_tarjeta.isdigit():

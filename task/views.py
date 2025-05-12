@@ -25,6 +25,35 @@ from .forms import ProductoForm, EmpleadoForm, TurnoForm, FormularioPagoTarjeta,
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
 from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.db.models import Sum, Count
+from django.utils.timezone import now, timedelta
+from django.utils.timezone import localdate
+from django.template.loader import render_to_string
+from django.http import HttpResponse
+import tempfile
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from django.http import HttpResponse
+from django.shortcuts import render
+from .models import Pedido
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from django.http import HttpResponse
+from django.shortcuts import render
+from django.db.models import Sum
+from datetime import timedelta
+from .models import Pedido
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.utils.timezone import localdate
+from reportlab.lib.pagesizes import letter
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.pdfgen import canvas
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
+from django.http import HttpResponse
+from django.template.defaultfilters import date as date_filter
+from reportlab.lib.units import inch
 
 def home(request):
     return render(request, "home.html")
@@ -236,11 +265,13 @@ def pago_recoger(request):
             alergias = form.cleaned_data.get('alergias', '')
             for item in items:
                 Pedido.objects.create(
+                    cliente=request.user,
                     producto_nombre=item.producto.nombre,
                     cantidad=item.cantidad,
                     precio_total=item.producto.precio * item.cantidad,
                     metodo='Recoger en tienda',
-                    alergias=alergias
+                    alergias=alergias,
+                    estado='En cocina'
                 )
             items.delete()
             carrito.delete()
@@ -251,8 +282,7 @@ def pago_recoger(request):
 
     return render(request, 'pago_recoger.html', {'form': form, 'pago_exitoso': pago_exitoso})
 
-def pago_domicilio(request):
-    # Lógica para procesar un pedido de domicilio
+def pago_domicilio(request):   
     if not request.user.is_authenticated:
         return redirect('login')
 
@@ -267,25 +297,31 @@ def pago_domicilio(request):
         messages.error(request, 'El carrito está vacío.')
         return redirect('catalogo_cliente')
 
+    pago_exitoso = False
+
     if request.method == 'POST':
         form = FormularioPagoDomicilio(request.POST)
         if form.is_valid():
+            alergias = form.cleaned_data.get('alergias', '')
             for item in items:
                 Pedido.objects.create(
+                    cliente=request.user,
                     producto_nombre=item.producto.nombre,
                     cantidad=item.cantidad,
                     precio_total=item.producto.precio * item.cantidad,
                     metodo='Domicilio',
                     direccion=form.cleaned_data['direccion'],
-                    alergias=form.cleaned_data.get('alergias', '')
+                    alergias=alergias,
+                    estado='En cocina1'
                 )
             items.delete()
             carrito.delete()
-            return render(request, 'pago_domicilio.html', {'form': form, 'pago_exitoso': True})  # Aquí indicamos que se mostrará la alerta
+            pago_exitoso = True  # ✅ Activa el SweetAlert
+            form = FormularioPagoDomicilio()  # Limpia el formulario
     else:
         form = FormularioPagoDomicilio()
 
-    return render(request, 'pago_domicilio.html', {'form': form})
+    return render(request, 'pago_domicilio.html', {'form': form, 'pago_exitoso': pago_exitoso})
 
 def lista_empleado(request):
     empleados = Empleado.objects.all()
@@ -356,3 +392,185 @@ def editar_turno(request, turno_id):
         form = TurnoForm(instance=turno)
 
     return render(request, 'editar_turno.html', {'form': form, 'turno': turno, 'empleado': turno.empleado})
+
+@login_required
+@user_passes_test(is_admin)
+def pedidos_en_cocina(request):
+    # Filtrar pedidos para recoger
+    pedidos_para_recoger = Pedido.objects.filter(metodo='Recoger en tienda', estado__in=['En cocina', 'Listo para recoger']).order_by('cliente')
+
+    # Filtrar pedidos a domicilio
+    pedidos_domicilio = Pedido.objects.filter(metodo='Domicilio', estado='En cocina1').order_by('cliente')
+
+    # Agrupar los pedidos por cliente para cada tipo
+    pedidos_para_recoger_por_cliente = {}
+    for pedido in pedidos_para_recoger:
+        pedidos_para_recoger_por_cliente.setdefault(pedido.cliente, []).append(pedido)
+
+    pedidos_domicilio_por_cliente = {}
+    for pedido in pedidos_domicilio:
+        pedidos_domicilio_por_cliente.setdefault(pedido.cliente, []).append(pedido)
+
+    # Renderizamos el template con ambos filtros
+    return render(request, 'pedidos_en_cocina.html', {
+        'pedidos_para_recoger_por_cliente': pedidos_para_recoger_por_cliente,
+        'pedidos_domicilio_por_cliente': pedidos_domicilio_por_cliente
+    })
+
+    
+    
+@login_required
+@user_passes_test(is_admin)   
+def marcar_listo_para_recoger(request, cliente_id):
+    if request.method == 'POST':
+        cliente = get_object_or_404(get_user_model(), id=cliente_id)
+        pedidos = Pedido.objects.filter(cliente=cliente, estado='En cocina').update(estado='Listo para recoger')
+    return redirect('pedidos_en_cocina')
+
+@login_required
+@user_passes_test(is_admin)
+def marcar_entregado(request, cliente_id):
+    Pedido.objects.filter(cliente=cliente_id, estado='Listo para recoger').update(estado='Entregado')
+    return redirect('pedidos_en_cocina')
+
+def mis_pedidos(request):
+    pedidos_activos = Pedido.objects.filter(cliente=request.user).exclude(estado='Entregado')
+    historial_pedidos = Pedido.objects.filter(cliente=request.user, estado='Entregado')
+    return render(request, 'mis_pedidos.html', {
+        'pedidos_activos': pedidos_activos,
+        'historial_pedidos': historial_pedidos
+    })
+
+@login_required
+@user_passes_test(is_admin)
+def pedidos_domicilio(request):
+    pedidos = Pedido.objects.filter(metodo='Domicilio',estado__in=['En cocina1', 'Enviado'])
+
+    pedidos_por_cliente = {}
+    for pedido in pedidos:
+        if pedido.cliente not in pedidos_por_cliente:
+            pedidos_por_cliente[pedido.cliente] = []
+        pedidos_por_cliente[pedido.cliente].append(pedido)
+        
+    return render(request, 'pedidos_domicilio.html', {
+        'pedidos_por_cliente': pedidos_por_cliente
+    })
+
+@login_required
+@user_passes_test(is_admin)
+def marcar_enviado(request, cliente_id):
+    if request.method == 'POST':
+        cliente = get_object_or_404(get_user_model(), id=cliente_id)
+        pedidos = Pedido.objects.filter(cliente=cliente, estado='En cocina1').update(estado='Enviado')
+    return redirect('pedidos_en_cocina')    
+
+@login_required
+@user_passes_test(is_admin)
+def dashboard_admin(request):
+    hoy = localdate()
+    manana = hoy + timedelta(days=1)
+    hace_7_dias = hoy - timedelta(days=7)
+
+    # Ventas del día (rango desde hoy hasta mañana)
+    ventas_diarias = (
+        Pedido.objects
+        .filter(fecha__gte=hoy, fecha__lt=manana)
+        .aggregate(total=Sum('precio_total'))['total'] or 0
+    )
+
+    # Ventas de la semana (últimos 7 días)
+    ventas_semanales = (
+        Pedido.objects
+        .filter(fecha__gte=hace_7_dias, fecha__lt=manana)
+        .aggregate(total=Sum('precio_total'))['total'] or 0
+    )
+
+    # Platos más vendidos
+    platos_populares = list(
+        Pedido.objects
+        .values('producto_nombre')
+        .annotate(total_vendidos=Sum('cantidad'))
+        .order_by('-total_vendidos')[:5]
+    )
+
+    context = {
+        'ventas_diarias': ventas_diarias,
+        'ventas_semanales': ventas_semanales,
+        'platos_populares': platos_populares,
+    }
+
+    return render(request, 'dashboard_admin.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def descargar_reporte_pdf(request):
+    hoy = localdate()
+    manana = hoy + timedelta(days=1)
+    hace_7_dias = hoy - timedelta(days=7)
+    
+    ventas_diarias = (
+        Pedido.objects
+        .filter(fecha__gte=hoy, fecha__lt=manana)
+        .aggregate(total=Sum('precio_total'))['total'] or 0
+    )
+    
+    ventas_semanales = (
+        Pedido.objects
+        .filter(fecha__gte=hace_7_dias, fecha__lt=manana)
+        .aggregate(total=Sum('precio_total'))['total'] or 0
+    )
+    
+    platos_populares = list(
+        Pedido.objects
+        .values('producto_nombre')
+        .annotate(total_vendidos=Sum('cantidad'))
+        .order_by('-total_vendidos')[:5]
+    )
+    
+    # Crear la respuesta del PDF
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="reporte_ventas_{hoy}.pdf"'
+    
+    # Crear el documento PDF
+    doc = SimpleDocTemplate(response, pagesize=letter)
+    story = []
+
+    # Agregar un título al PDF
+    title_style = ParagraphStyle(name="Title", fontSize=16, alignment=1, spaceAfter=12, fontName="Helvetica-Bold")
+    title = Paragraph(f"Reporte de ventas - {hoy}", title_style)
+    story.append(title)
+
+    # Agregar la información de ventas diarias y semanales
+    info_style = getSampleStyleSheet()['Normal']
+    info_paragraph = Paragraph(f"<b>Ventas del día:</b> ${ventas_diarias} <br /><b>Ventas semanales:</b> ${ventas_semanales}", info_style)
+    story.append(info_paragraph)
+
+    # Agregar los platos populares
+    story.append(Paragraph("<b>Platos más vendidos:</b>", info_style))
+    
+    # Preparar los datos para la tabla
+    data = [['Producto', 'Cantidad vendida']]  # Cabecera de la tabla
+    for plato in platos_populares:
+        data.append([plato['producto_nombre'], plato['total_vendidos']])
+    
+    # Crear la tabla
+    table = Table(data, colWidths=[4*inch, 2*inch])
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.darkblue),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+        ('SIZE', (0, 0), (-1, -1), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+    ]))
+    
+    # Agregar la tabla al PDF
+    story.append(table)
+
+    # Crear el documento
+    doc.build(story)
+    
+    return response
