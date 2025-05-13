@@ -1,0 +1,90 @@
+/* === Reset y tipografía === */
+body.body-estilo {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #fff8f0;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+/* === Navbar === */
+.navbar {
+    background-color: #ffeedc !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+    color: #d2691e !important;
+}
+
+.nav-link {
+    color: #6c757d !important;
+    transition: color 0.3s;
+}
+
+.nav-link:hover {
+    color: #d2691e !important;
+}
+
+/* === Contenedor principal === */
+.container {
+    padding: 2rem;
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+/* === Títulos === */
+h1, h2, h3 {
+    color: #b75b2b;
+    margin-bottom: 1rem;
+}
+
+/* === Botones === */
+.btn-primary {
+    background-color: #d2691e;
+    border-color: #d2691e;
+}
+
+.btn-primary:hover {
+    background-color: #b75b2b;
+    border-color: #b75b2b;
+}
+
+/* === Tablas y cards opcionales === */
+.table {
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+/* === Footer (si se agrega más adelante) === */
+footer {
+    text-align: center;
+    padding: 20px;
+    background-color: #ffe4c4;
+    color: #555;
+    margin-top: 40px;
+}
+
+.hero-section {
+    background-image: url("../img/hero.jpg");
+    background-size: cover;
+    background-position: center;
+    height: 80vh;
+    padding: 0 20px;
+}
+
+.hero-section h1,
+.hero-section p {
+    text-shadow: 1px 1px 6px rgba(0, 0, 0, 0.6);
+}
+
+.frase-final {
+    background-color: #fffaef;
+    padding: 30px 20px;
+    border-left: 6px solid #ffc107;
+    font-style: italic;
+    color: #5e4b3c;
+}

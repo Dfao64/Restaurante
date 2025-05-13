@@ -18,21 +18,31 @@ class CustomUserCreationForm(UserCreationForm):
     nombre = forms.CharField(max_length=255, required=True)
     direccion = forms.CharField(max_length=255, required=True)
     numero_telefono = forms.CharField(max_length=20, required=True)
+
     class Meta:
         model = CustomUser
         fields = ('nombre', 'email', 'direccion', 'numero_telefono', 'password1', 'password2')
         widgets = {
-            'password1': forms.PasswordInput(),
-            'password2': forms.PasswordInput(),
+            'password1': forms.PasswordInput(attrs={'class': 'form-control'}),
+            'password2': forms.PasswordInput(attrs={'class': 'form-control'}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs.update({'class': 'form-control'})
+
 class CustomAuthenticationForm(forms.Form):
-    email = forms.EmailField()
-    password = forms.CharField(widget=forms.PasswordInput)
+    email = forms.EmailField(label="Correo electrónico")
+    password = forms.CharField(widget=forms.PasswordInput, label="Contraseña")
+
     def __init__(self, request=None, *args, **kwargs):
         self.request = request
         super().__init__(*args, **kwargs)
         self.user = None
+
+        for field in self.fields.values():
+            field.widget.attrs.update({'class': 'form-control'})
 
     def clean(self):
         email = self.cleaned_data.get('email')
@@ -133,6 +143,12 @@ class FormularioPagoTarjeta(forms.Form):
             'class': 'form-control'
         })
     )
+    propina = forms.BooleanField(
+        required=False,
+        label='¿Desea incluir una propina del 10%?',
+        initial=False,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
     
     def clean_numero_tarjeta(self):
         numero_tarjeta = self.cleaned_data.get('numero_tarjeta')
@@ -183,6 +199,12 @@ class FormularioPagoDomicilio(forms.Form):
         required=False,
         label='¿Tiene alguna alergia?',
         widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Opcional'})
+    )
+    propina = forms.BooleanField(
+        required=False,
+        label='¿Desea incluir una propina del 10%?',
+        initial=False,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
     )
     
     

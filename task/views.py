@@ -54,6 +54,8 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
 from django.http import HttpResponse
 from django.template.defaultfilters import date as date_filter
 from reportlab.lib.units import inch
+from decimal import Decimal
+from django.contrib.auth.decorators import login_required, user_passes_test
 
 def home(request):
     return render(request, "home.html")
@@ -263,20 +265,35 @@ def pago_recoger(request):
         form = FormularioPagoTarjeta(request.POST)
         if form.is_valid():
             alergias = form.cleaned_data.get('alergias', '')
+            propina = form.cleaned_data.get('propina', False)
+
+            # Calcular el total de todos los ítems
+            total = sum(Decimal(item.producto.precio) * item.cantidad for item in items)
+
+            # Calcular propina una sola vez
+            propina_total = total * Decimal('0.10') if propina else Decimal('0.00')
+
+            # Crear un pedido por cada ítem
             for item in items:
+                precio_base = Decimal(item.producto.precio) * item.cantidad
+                proporción = precio_base / total if total > 0 else 0
+                propina_asignada = (proporción * propina_total).quantize(Decimal('0.01'))
+
                 Pedido.objects.create(
                     cliente=request.user,
                     producto_nombre=item.producto.nombre,
                     cantidad=item.cantidad,
-                    precio_total=item.producto.precio * item.cantidad,
+                    precio_total=precio_base + propina_asignada,
+                    propina=propina_asignada,
                     metodo='Recoger en tienda',
                     alergias=alergias,
                     estado='En cocina'
                 )
+
             items.delete()
             carrito.delete()
-            pago_exitoso = True  # ✅ Activa el SweetAlert
-            form = FormularioPagoTarjeta()  # Limpia el formulario
+            pago_exitoso = True
+            form = FormularioPagoTarjeta()
     else:
         form = FormularioPagoTarjeta()
 
@@ -303,20 +320,27 @@ def pago_domicilio(request):
         form = FormularioPagoDomicilio(request.POST)
         if form.is_valid():
             alergias = form.cleaned_data.get('alergias', '')
+            direccion = form.cleaned_data['direccion']
+            propina = form.cleaned_data.get('propina', False)
+
             for item in items:
+                precio_total = item.producto.precio * item.cantidad
+                propina = (precio_total * Decimal('0.10')) if propina else Decimal('0.00')
+
                 Pedido.objects.create(
                     cliente=request.user,
                     producto_nombre=item.producto.nombre,
                     cantidad=item.cantidad,
-                    precio_total=item.producto.precio * item.cantidad,
+                    precio_total=precio_total,
                     metodo='Domicilio',
-                    direccion=form.cleaned_data['direccion'],
+                    direccion=direccion,
                     alergias=alergias,
-                    estado='En cocina1'
+                    estado='En cocina1',
+                    propina=propina
                 )
             items.delete()
             carrito.delete()
-            pago_exitoso = True  # ✅ Activa el SweetAlert
+            pago_exitoso = True
             form = FormularioPagoDomicilio()  # Limpia el formulario
     else:
         form = FormularioPagoDomicilio()
@@ -485,6 +509,13 @@ def dashboard_admin(request):
         .aggregate(total=Sum('precio_total'))['total'] or 0
     )
 
+    # Propinas Totales (sin incluirlas en las ventas)
+    propinas_totales = (
+        Pedido.objects
+        .filter(fecha__gte=hace_7_dias, fecha__lt=manana)
+        .aggregate(total=Sum('propina'))['total'] or 0
+    )
+
     # Platos más vendidos
     platos_populares = list(
         Pedido.objects
@@ -496,6 +527,7 @@ def dashboard_admin(request):
     context = {
         'ventas_diarias': ventas_diarias,
         'ventas_semanales': ventas_semanales,
+        'propinas_totales': propinas_totales,  # Se pasa la variable correctamente
         'platos_populares': platos_populares,
     }
 

@@ -1,9 +1,52 @@
 {% extends 'base.html' %}
+{% load static %}
+{% block title %}Inicio - Restaurante{% endblock %}
 
 {% block content %}
 
-    <h1>Bienvenido al sistema</h1>
-    <p>{% lorem 1 b random %}</p>
+<!-- HERO -->
+<div class="hero-section text-white text-center d-flex align-items-center justify-content-center">
+    <div>
+        <h1 class="display-4 fw-bold">Bienvenido a Sabor Artesanal</h1>
+        <p class="lead">Comida casera con el toque que enamora</p>
+        <a href="{% url 'catalogo_cliente' %}" class="btn btn-warning mt-3 px-4 py-2">Ver Menú</a>
+    </div>
+</div>
+
+<!-- PRESENTACIÓN -->
+<section class="mt-5 text-center">
+    <h2 class="fw-bold">Una experiencia culinaria única</h2>
+    <p class="mt-3">En Sabor Artesanal ofrecemos platillos preparados con ingredientes frescos y recetas tradicionales que te harán sentir como en casa.</p>
+</section>
+
+<!-- GALERÍA -->
+<section class="container mt-5">
+    <div class="row text-center">
+        <div class="col-md-4">
+            <img src="{% static 'img/hamburguesa1.jpg' %}" class="img-fluid rounded" alt="Plato 1">
+            <h5 class="mt-3">Bandeja Paisa</h5>
+        </div>
+        <div class="col-md-4">
+            <img src="{% static 'img/Ajiaco-santafereno.jpg' %}" class="img-fluid rounded" alt="Plato 2">
+            <h5 class="mt-3">Ajiaco Santafereño</h5>
+        </div>
+        <div class="col-md-4">
+            <img src="{% static 'img/arepa.jpg' %}" class="img-fluid rounded" alt="Plato 3">
+            <h5 class="mt-3">Arepa con todo</h5>
+        </div>
+    </div>
+</section>
+
+<!-- FRASE -->
+<section class="text-center my-5 frase-final">
+    <blockquote class="blockquote">
+        <p>"Donde el sabor es arte y cada plato cuenta una historia."</p>
+    </blockquote>
+</section>
+
+<!-- CTA -->
+<div class="text-center mb-5">
+    <a href="{% url 'catalogo_cliente' %}" class="btn btn-success px-4 py-2">Haz tu pedido ahora</a>
+</div>
 
 {% endblock %}
-

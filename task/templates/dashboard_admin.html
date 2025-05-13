@@ -1,11 +1,12 @@
 {% extends 'base.html' %}
+
 {% block content %}
 <div class="container mt-5">
     <h2 class="mb-4 text-center">📊 Dashboard de Ventas</h2>
 
     <!-- Tarjetas de métricas -->
     <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-4">
             <div class="card border-success mb-3">
                 <div class="card-header bg-success text-white">Ventas del Día</div>
                 <div class="card-body">
@@ -14,11 +15,20 @@
             </div>
         </div>
 
-        <div class="col-md-6">
+        <div class="col-md-4">
             <div class="card border-info mb-3">
                 <div class="card-header bg-info text-white">Ventas de la Última Semana</div>
                 <div class="card-body">
                     <h4>$ {{ ventas_semanales }}</h4>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-warning mb-3">
+                <div class="card-header bg-warning text-white">Propinas Totales</div>
+                <div class="card-body">
+                    <h4>$ {{ propinas_totales }}</h4>
                 </div>
             </div>
         </div>
@@ -84,6 +94,7 @@
         }
     });
 </script>
+
 <a href="{% url 'descargar_reporte_pdf' %}" class="btn btn-danger mt-3">Descargar Reporte en PDF</a>
 
 {% endblock %}

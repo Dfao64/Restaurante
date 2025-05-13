@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
 from django.db import models
 from django.utils import timezone
+from decimal import Decimal
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -110,6 +111,7 @@ class Pedido(models.Model):
         ('En reparto', 'En reparto'),
     ]
     estado = models.CharField(max_length=20, choices=ESTADOS)
+    propina = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
     
     def __str__(self):
         return f"{self.producto_nombre} x {self.cantidad}"
